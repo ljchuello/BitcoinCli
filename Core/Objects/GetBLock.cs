@@ -49,6 +49,9 @@ namespace Core.Objects
         [JsonProperty("previousblockhash")]
         public string Previousblockhash { get; set; } = string.Empty;
 
+        [JsonProperty("nextblockhash")]
+        public string Nextblockhash { get; set; } = string.Empty;
+
         [JsonProperty("strippedsize")]
         public long Strippedsize { get; set; } = 0;
 
@@ -59,12 +62,13 @@ namespace Core.Objects
         public long Weight { get; set; } = 0;
 
         [JsonProperty("tx")]
-        public List<string> Tx { get; set; } = new List<string>();
+        //public List<string> Tx { get; set; } = new List<string>();
+        public List<GetRawTransaction> Tx { get; set; } = new List<GetRawTransaction>();
 
         public static async Task<GetBLock> GetAsync(string blokHash)
         {
             // Get
-            string jsonResponse = await Core.SendPostRequest($"{{ \"method\": \"getblock\", \"params\": [ \"{blokHash}\" ] }}");
+            string jsonResponse = await new Core().SendPostRequest($"{{ \"method\": \"getblock\", \"params\": [ \"{blokHash}\", 2 ] }}");
 
             // Set
             JObject result = JObject.Parse(jsonResponse);

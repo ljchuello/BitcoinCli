@@ -55,7 +55,8 @@ namespace Core.Objects
         public static async Task<GetRawTransaction> GetAsync(string txid)
         {
             // Get
-            string jsonResponse = await Core.SendPostRequest($"{{ \"method\": \"getrawtransaction\", \"params\": [ \"{txid}\", true] }}");
+
+            string jsonResponse = await new Core().SendPostRequest($"{{ \"method\": \"getrawtransaction\", \"params\": [ \"{txid}\", true] }}");
 
             // Set
             JObject result = JObject.Parse(jsonResponse);
@@ -64,7 +65,7 @@ namespace Core.Objects
             // Address
             foreach (var row in getRawTransaction.Vout)
             {
-                if (string.IsNullOrEmpty(row.ScriptPubKey.Address))
+                if (string.IsNullOrEmpty(row.ScriptPubKey.Address) && row.ScriptPubKey.Type != "nulldata")
                 {
                     {
                         try

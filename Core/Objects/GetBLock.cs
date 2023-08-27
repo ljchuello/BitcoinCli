@@ -1,7 +1,11 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using RestSharp;
+using RestClient = NBitcoin.RPC.RestClient;
+using System.Net.Http;
 
 namespace Core.Objects
 {
@@ -68,7 +72,7 @@ namespace Core.Objects
         public static async Task<GetBLock> GetAsync(string blokHash)
         {
             // Get
-            string jsonResponse = await new Core().SendPostRequest($"{{ \"method\": \"getblock\", \"params\": [ \"{blokHash}\", 2 ] }}");
+            string jsonResponse = await Core.SendPostRequestAsync($"{{ \"method\": \"getblock\", \"params\": [ \"{blokHash}\", 2 ] }}");
 
             // Set
             JObject result = JObject.Parse(jsonResponse);

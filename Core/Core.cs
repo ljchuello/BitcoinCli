@@ -39,7 +39,7 @@ namespace Core
         }
 
 
-        public async Task<string> SendPostRequest(string content)
+        public static async Task<string> SendPostRequestAsync(string content)
         {
             return await Task.Run(async () =>
             {

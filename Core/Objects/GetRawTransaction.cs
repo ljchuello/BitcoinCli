@@ -56,7 +56,7 @@ namespace Core.Objects
         {
             // Get
 
-            string jsonResponse = await new Core().SendPostRequest($"{{ \"method\": \"getrawtransaction\", \"params\": [ \"{txid}\", true] }}");
+            string jsonResponse = await Core.SendPostRequestAsync($"{{ \"method\": \"getrawtransaction\", \"params\": [ \"{txid}\", true] }}");
 
             // Set
             JObject result = JObject.Parse(jsonResponse);

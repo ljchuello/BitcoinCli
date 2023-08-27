@@ -15,67 +15,82 @@ namespace Test
         {
             try
             {
-                // string blockHash = "0000000000000000000117dcc09d31a57fb1ec95490cae32291f7199c9784136";
-                var block = await GetBLock.GetAsync("00000000146e28348d962160e9d540ababbd1dababb93d4f92aed9e53bcf36de");
+                //string blockHash = "00000000000000241123ba5f49ec423ad3e3a380abe9e4a1fcd699dee8f577da";
+                var block = await GetBLock.GetAsync("00000000000000241123ba5f49ec423ad3e3a380abe9e4a1fcd699dee8f577da");
                 long totalTx = 0;
                 long totalBlock = 0;
 
                 while (true)
                 {
-                    totalBlock++;
-
-                    // Recorremos
-                    long i = 0;
-                    foreach (var tx in block.Tx)
+                    try
                     {
+                        // Bloque anterior
+                        totalBlock++;
+                        var nextBlock = GetBLock.GetAsync(block.Nextblockhash);
 
-                        // Address
-                        Console.WriteLine($"Procesando... TotalTx: {++totalTx:n0} | Total Block: {totalBlock:n0} | Block: {block.Height:n0} | Tx: {++i:n0}/{block.Tx.Count:n0}");
-                        foreach (var row in tx.Vout)
+                        // Recorremos
+                        Console.WriteLine($"Procesando... TotalTx: {++totalTx:n0} | Total Block: {totalBlock:n0} | Block: {block.Height:n0} | Tx: {block.Tx.Count:n0}");
+                        long i = 0;
+                        foreach (var tx in block.Tx)
                         {
-                            string txId = tx.Txid;
-                            // Verificamos si está vacía
-                            if (string.IsNullOrEmpty(row.ScriptPubKey.Address))
+                            totalTx++;
+                            // Address
+                            foreach (var row in tx.Vout)
                             {
-                                switch (row.ScriptPubKey.Type)
+                                // Verificamos si está vacía
+                                if (string.IsNullOrEmpty(row.ScriptPubKey.Address))
                                 {
-                                    case "nulldata":
-                                        row.ScriptPubKey.Address = "unknown";
-                                        break;
+                                    switch (row.ScriptPubKey.Type)
+                                    {
+                                        case "nulldata":
+                                            row.ScriptPubKey.Address = "nulldata";
+                                            break;
 
-                                    case "multisig":
-                                        row.ScriptPubKey.Address = "unknown";
-                                        break;
+                                        case "multisig":
+                                            row.ScriptPubKey.Address = "multisig";
+                                            break;
 
-                                    case "pubkey":
-                                        // ScriptPubKey en formato hexadecimal
-                                        string scriptPubKeyHex = row.ScriptPubKey.Hex;
+                                        case "nonstandard":
+                                            row.ScriptPubKey.Address = "nonstandard";
+                                            break;
 
-                                        // Convierte el ScriptPubKey hexadecimal a bytes
-                                        byte[] scriptPubKeyBytes = Encoders.Hex.DecodeData(scriptPubKeyHex);
+                                        case "pubkey":
+                                            // ScriptPubKey en formato hexadecimal
+                                            string scriptPubKeyHex = row.ScriptPubKey.Hex;
 
-                                        // Extrae la clave pública del ScriptPubKey (omitiendo los bytes de control)
-                                        byte[] publicKeyBytes = new byte[scriptPubKeyBytes.Length - 2];
-                                        Array.Copy(scriptPubKeyBytes, 1, publicKeyBytes, 0, publicKeyBytes.Length);
+                                            // Convierte el ScriptPubKey hexadecimal a bytes
+                                            byte[] scriptPubKeyBytes = Encoders.Hex.DecodeData(scriptPubKeyHex);
 
-                                        // Crea un objeto de PubKey a partir de la clave pública
-                                        PubKey publicKey = new PubKey(publicKeyBytes);
+                                            // Extrae la clave pública del ScriptPubKey (omitiendo los bytes de control)
+                                            byte[] publicKeyBytes = new byte[scriptPubKeyBytes.Length - 2];
+                                            Array.Copy(scriptPubKeyBytes, 1, publicKeyBytes, 0, publicKeyBytes.Length);
 
-                                        // Crea una dirección Bitcoin a partir de la clave pública
-                                        row.ScriptPubKey.Address = publicKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main).ToString();
-                                        break;
+                                            // Crea un objeto de PubKey a partir de la clave pública
+                                            PubKey publicKey = new PubKey(publicKeyBytes);
+
+                                            // Crea una dirección Bitcoin a partir de la clave pública
+                                            row.ScriptPubKey.Address = publicKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main).ToString();
+                                            break;
+                                    }
+                                }
+
+                                if (string.IsNullOrEmpty(row.ScriptPubKey.Address))
+                                {
+                                    string txId = tx.Txid;
+                                    Console.WriteLine($"{Guid.NewGuid()}");
                                 }
                             }
-
-                            if (string.IsNullOrEmpty(row.ScriptPubKey.Address))
-                            {
-                                Console.WriteLine($"{Guid.NewGuid()}");
-                            }
                         }
-                    }
 
-                    // Bloque anterior
-                    block = await GetBLock.GetAsync(block.Nextblockhash);
+                        // Proximo
+                        await Task.WhenAll(nextBlock);
+                        block = nextBlock.Result;
+                    }
+                    catch (Exception e)
+                    {
+                        await Task.Delay(2500);
+                        Console.WriteLine(e);
+                    }
                 }
             }
             catch (Exception e)
